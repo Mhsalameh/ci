@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "task.fullname" . }}
+  labels:
+    app: web
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web
+        image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag }}
+        env:
+          - name: DB_HOST
+            value: {{ .Release.Name}}-postgresql
+          - name: DB_DATABASE
+            value: {{ .Values.postgresql.global.postgresql.auth.database }}
+          - name: POSTGRES_USER
+            value: {{ .Values.postgresql.global.postgresql.auth.username }}
+          - name: POSTGRES_PASSWORD
+            {{- if .Values.postgresql.global.postgresql.auth.password }}
+            value: {{ .Values.postgresql.global.postgresql.auth.password  }}
+            {{- else}}
+            value: testpassword
+            {{- end }}
+        ports:
+        - containerPort: 3000
